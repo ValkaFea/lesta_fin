@@ -1,14 +1,15 @@
 FROM python:3.10-slim AS builder
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --user -r requirements.txt
-RUN pip install --user flake8 pytest
+COPY requirements.txt requirements-dev.txt ./
+RUN pip install -r requirements.txt && \
+    pip install -r requirements-dev.txt
 
 FROM python:3.10-slim
 
 WORKDIR /app
-COPY --from=builder /root/.local /root/.local
+COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 COPY . .
 
 ENV PATH=/root/.local/bin:$PATH \

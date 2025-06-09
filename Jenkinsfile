@@ -28,10 +28,9 @@ pipeline {
             steps {
                 echo '🔍 Running linter...'
                 script {
-                    docker.image("${DOCKER_IMAGE}:latest").inside {
-                        sh '''
-                        flake8 app/
-                        '''
+                    docker.image('valdev111/lesta_fin:latest').inside('-u root') {
+                        sh 'flake8 app/'
+                        sh 'pytest'
                     }
                 }
             }
