@@ -6,6 +6,7 @@ from flasgger import swag_from
 
 bp = Blueprint("routes", __name__)
 
+
 @bp.route("/ping")
 @swag_from({
     'responses': {
@@ -21,6 +22,7 @@ bp = Blueprint("routes", __name__)
 })
 def ping():
     return jsonify({"status": "ok"}), 200
+
 
 @bp.route("/submit", methods=["POST"])
 @swag_from({
@@ -78,6 +80,7 @@ def submit():
     db.session.commit()
     return jsonify({"message": "Result saved"}), 201
 
+
 @bp.route("/results")
 @swag_from({
     'parameters': [
@@ -117,7 +120,11 @@ def submit():
 def results():
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 10))
-    results = Result.query.paginate(page=page, per_page=per_page, error_out=False)
+    results = Result.query.paginate(
+        page=page,
+        per_page=per_page,
+        error_out=False
+    )
     return jsonify([
         {
             "id": r.id,
