@@ -30,7 +30,6 @@ pipeline {
                 script {
                     docker.image("${DOCKER_IMAGE}:latest").inside {
                         sh '''
-                        pip install flake8
                         flake8 app/
                         '''
                     }
