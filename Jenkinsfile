@@ -1,41 +1,49 @@
 pipeline {
-    agent { label 'local-agent' } // Явно указываем запуск на нужном агенте
+    agent any
 
     environment {
-        IMAGE_NAME = 'valdev111/lesta_fin:latest'
-        CREDENTIALS_ID = '981343cb-9b8c-47ec-9a5a-25ca1a8b62e4'
+        DOCKER_IMAGE = 'valdev111/lesta_fin'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git url: 'https://github.com/ValkaFea/lesta_fin.git',
+                     branch: 'main'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build') {
             steps {
                 script {
-                    // Построение Docker-образа с тегом из переменной IMAGE_NAME
-                    dockerImage = docker.build("${IMAGE_NAME}")
+                    docker.build("${DOCKER_IMAGE}:latest")
                 }
             }
         }
 
         stage('Lint') {
             steps {
-                // Установка dev-зависимостей и запуск проверки стиля кода
-                sh 'pip install -r requirements-dev.txt'
-                sh 'flake8 .'
+                script {
+                    docker.image("${DOCKER_IMAGE}:latest").inside {
+                        sh '''
+                        python -m venv /tmp/venv
+                        . /tmp/venv/bin/activate
+                        pip install -r requirements-dev.txt
+                        flake8 app/
+                        '''
+                    }
+                }
             }
         }
 
         stage('Push to DockerHub') {
+            when {
+                branch 'main'
+            }
             steps {
                 script {
-                    // Логин и пуш образа в DockerHub, используя креденшелы Jenkins
-                    docker.withRegistry('https://index.docker.io/v1/', "${CREDENTIALS_ID}") {
-                        dockerImage.push()
+                    docker.withRegistry('', 'dockerhub-creds') {
+                        docker.image("${DOCKER_IMAGE}:latest").push()
                     }
                 }
             }
@@ -44,10 +52,14 @@ pipeline {
 
     post {
         always {
-            echo '✅ Pipeline завершен.'
+            echo 'Pipeline завершен - очистка...'
+            sh 'docker system prune -f'
+        }
+        success {
+            echo '✅ Pipeline успешно выполнен!'
         }
         failure {
-            echo '❌ Pipeline упал.'
+            echo '❌ Pipeline завершился с ошибкой'
         }
     }
 }
