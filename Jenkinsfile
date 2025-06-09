@@ -59,32 +59,29 @@ pipeline {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} '
                             set -e
+                            echo "Checking if project folder exists..."
                             if [ ! -d "${REMOTE_DEPLOY_DIR}" ]; then
+                                echo "Cloning repo..."
                                 git clone https://github.com/ValkaFea/lesta_fin.git ${REMOTE_DEPLOY_DIR}
                             else
+                                echo "Pulling latest changes..."
                                 cd ${REMOTE_DEPLOY_DIR} && git pull
                             fi
+
                             cd ${REMOTE_DEPLOY_DIR}
+
+                            echo "Pulling Docker image..."
                             docker pull ${DOCKER_IMAGE}:latest
-                            docker-compose down
-                            docker-compose up -d
+
+                            echo "Stopping existing containers..."
+                            /usr/bin/docker-compose down || true
+
+                            echo "Starting containers..."
+                            /usr/bin/docker-compose up -d
+
+                            echo "Deployment finished."
                         '
                     """
                 }
             }
         }
-    }
-
-    post {
-        always {
-            echo '🧹 Cleaning up...'
-            sh 'docker system prune -f'
-        }
-        success {
-            echo '✅ Pipeline completed successfully.'
-        }
-        failure {
-            echo '❌ Pipeline failed. Check logs for details.'
-        }
-    }
-}
