@@ -2,7 +2,7 @@ FROM python:3.10-slim AS builder
 
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --user -r requirements.txt
 
 FROM python:3.10-slim
 
