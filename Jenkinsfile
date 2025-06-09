@@ -40,7 +40,7 @@ pipeline {
             steps {
                 echo '📦 Pushing image to DockerHub...'
                 script {
-                    docker.withRegistry('', 'dockerhub-creds') {
+                    docker.withRegistry('', '981343cb-9b8c-47ec-9a5a-25ca1a8b62e4') {
                         docker.image("${DOCKER_IMAGE}:latest").push()
                     }
                 }
