@@ -3,6 +3,7 @@ FROM python:3.10-slim AS builder
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --user -r requirements.txt
+RUN pip install --user flake8
 
 FROM python:3.10-slim
 
