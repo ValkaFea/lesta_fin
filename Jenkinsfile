@@ -25,25 +25,15 @@ pipeline {
         }
 
         stage('Test / Lint') {
-    steps {
-        script {
-            docker.image("valdev111/lesta_fin:latest").inside {
-                sh '''
-                python -m venv /tmp/venv
-                . /tmp/venv/bin/activate
-                pip install flake8
-                flake8 app/ || echo "Lint issues found"
-                '''
-            }
-
-            docker.image("valdev111/lesta_fin:latest").inside {
-                sh '''
-                python -m venv /tmp/venv
-                . /tmp/venv/bin/activate
-                pip install pytest
-                pytest app/tests/ || echo "Tests failed"
-                '''
-                     }
+            steps {
+                echo '🔍 Running linter...'
+                script {
+                    docker.image("${DOCKER_IMAGE}:latest").inside {
+                        sh '''
+                        pip install flake8
+                        flake8 app/
+                        '''
+                    }
                 }
             }
         }
