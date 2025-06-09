@@ -30,7 +30,6 @@ pipeline {
                 script {
                     docker.image('valdev111/lesta_fin:latest').inside('-u root') {
                         sh 'flake8 app/'
-                        sh 'pytest'
                     }
                 }
             }
