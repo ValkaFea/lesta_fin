@@ -3,8 +3,9 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'valdev111/lesta_fin'
-        REMOTE_HOST = 'ubuntu@37.9.53.175'
-        REMOTE_DEPLOY_DIR = '/home/ubuntu/lesta_fin'
+        REMOTE_USER = 'ubuntu'
+        REMOTE_HOST = '37.9.53.175'
+        REMOTE_DEPLOY_DIR = "/home/${REMOTE_USER}/lesta_fin"
     }
 
     stages {
@@ -54,7 +55,7 @@ pipeline {
                 echo '🚀 Deploying to remote server via SSH...'
                 sshagent (credentials: ['f8aa8db9-0cb7-4195-a4ff-19b1eefe4983']) {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} '
+                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} '
                         set -euxo pipefail
 
                         echo "Checking if project directory exists..."
