@@ -24,7 +24,7 @@ pipeline {
             }
         }
 
-        stage('Code Linting') {
+        stage('Test / Lint') {
             steps {
                 echo '🔍 Running linter...'
                 script {
@@ -57,31 +57,34 @@ pipeline {
                 echo '🚀 Deploying to remote server via SSH...'
                 sshagent (credentials: ['f8aa8db9-0cb7-4195-a4ff-19b1eefe4983']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} '
-                            set -e
-                            echo "Checking if project folder exists..."
-                            if [ ! -d "${REMOTE_DEPLOY_DIR}" ]; then
-                                echo "Cloning repo..."
-                                git clone https://github.com/ValkaFea/lesta_fin.git ${REMOTE_DEPLOY_DIR}
-                            else
-                                echo "Pulling latest changes..."
-                                cd ${REMOTE_DEPLOY_DIR} && git pull
-                            fi
+                    ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} '
+                        set -e
 
-                            cd ${REMOTE_DEPLOY_DIR}
+                        echo "Checking if project folder exists..."
+                        if [ ! -d "${REMOTE_DEPLOY_DIR}" ]; then
+                            echo "Cloning repo..."
+                            git clone https://github.com/ValkaFea/lesta_fin.git ${REMOTE_DEPLOY_DIR}
+                        else
+                            echo "Pulling latest changes..."
+                            cd ${REMOTE_DEPLOY_DIR} && git pull
+                        fi
 
-                            echo "Pulling Docker image..."
-                            docker pull ${DOCKER_IMAGE}:latest
+                        cd ${REMOTE_DEPLOY_DIR}
 
-                            echo "Stopping existing containers..."
-                            /usr/bin/docker-compose down || true
+                        echo "Pulling Docker image..."
+                        docker pull ${DOCKER_IMAGE}:latest
 
-                            echo "Starting containers..."
-                            /usr/bin/docker-compose up -d
+                        echo "Stopping existing containers if any..."
+                        /usr/bin/docker-compose down || true
 
-                            echo "Deployment finished."
-                        '
+                        echo "Starting containers..."
+                        /usr/bin/docker-compose up -d
+
+                        echo "Deployment finished."
+                    '
                     """
                 }
             }
         }
+    }
+}
