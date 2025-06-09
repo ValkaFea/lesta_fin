@@ -28,7 +28,7 @@ pipeline {
             steps {
                 echo '🔍 Running linter...'
                 script {
-                    docker.image('valdev111/lesta_fin:latest').inside('-u root') {
+                    docker.image("${DOCKER_IMAGE}:latest").inside('-u root') {
                         sh 'flake8 app/'
                     }
                 }
@@ -55,29 +55,31 @@ pipeline {
                 sshagent (credentials: ['f8aa8db9-0cb7-4195-a4ff-19b1eefe4983']) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${REMOTE_HOST} '
-                        set -e
+                        set -euxo pipefail
 
-                        echo "Checking if project folder exists..."
+                        echo "Checking if project directory exists..."
                         if [ ! -d "${REMOTE_DEPLOY_DIR}" ]; then
-                            echo "Cloning repo..."
-                            git clone https://github.com/ValkaFea/lesta_fin.git ${REMOTE_DEPLOY_DIR}
+                            echo "Directory not found, cloning repository..."
+                            git clone https://github.com/ValkaFea/lesta_fin.git "${REMOTE_DEPLOY_DIR}"
                         else
-                            echo "Pulling latest changes..."
-                            cd ${REMOTE_DEPLOY_DIR} && git pull
+                            echo "Directory exists, updating repository..."
+                            cd "${REMOTE_DEPLOY_DIR}"
+                            git fetch --all
+                            git reset --hard origin/main
                         fi
 
-                        cd ${REMOTE_DEPLOY_DIR}
+                        cd "${REMOTE_DEPLOY_DIR}"
 
-                        echo "Pulling Docker image..."
+                        echo "Pulling latest Docker image..."
                         docker pull ${DOCKER_IMAGE}:latest
 
-                        echo "Stopping existing containers if any..."
+                        echo "Stopping existing containers (if any)..."
                         /usr/bin/docker-compose down || true
 
                         echo "Starting containers..."
                         /usr/bin/docker-compose up -d
 
-                        echo "Deployment finished."
+                        echo "Deployment completed successfully."
                     '
                     """
                 }
